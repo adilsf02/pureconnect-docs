@@ -4,12 +4,7 @@
     <meta charset="UTF-8" />
     <title>Agentforce Search</title>
 
-    <!-- Hide Salesforce default chat bubble -->
     <style>
-        .embeddedServiceHelpButton {
-            display: none !important;
-        }
-
         body {
             font-family: Arial, sans-serif;
             background: #f7f9fb;
@@ -31,6 +26,29 @@
             border-radius: 10px;
             border: 1px solid #ccc;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* Floating helper bubble */
+        .floating-chat-helper {
+            position: fixed;
+            bottom: 140px;
+            right: 30px;
+            background: #0070d2;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            animation: floatUpDown 3s ease-in-out infinite;
+            z-index: 999999;
+        }
+
+        @keyframes floatUpDown {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0); }
         }
     </style>
 
@@ -62,30 +80,22 @@
 
 <body>
 
-    <!-- Your custom search bar -->
     <div class="search-container">
         <input id="searchInput" type="text" placeholder="Ask Agentforce anything…" />
     </div>
 
-    <!-- Logic to open chat + send first message -->
+    <!-- Floating helper bubble -->
+    <div class="floating-chat-helper" onclick="scrollToBottom()">
+        Chat Now
+    </div>
+
     <script>
-        document.getElementById("searchInput").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                const msg = e.target.value.trim();
-                if (!msg) return;
-
-                // Open chat
-                embeddedservice_bootstrap.utilAPI.openChat();
-
-                // Send message after widget loads
-                setTimeout(() => {
-                    embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
-                        initialMessage: msg
-                    });
-                    embeddedservice_bootstrap.prechatAPI.startChat();
-                }, 800);
-            }
-        });
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     </script>
 
 </body>
