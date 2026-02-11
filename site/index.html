@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Agentforce Search</title>
+
+    <!-- Hide Salesforce default chat bubble -->
+    <style>
+        .embeddedServiceHelpButton {
+            display: none !important;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f9fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 650px;
+            margin: 120px auto;
+            text-align: center;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+    </style>
+
+    <!-- Your Salesforce Embedded Messaging Snippet -->
+    <script type='text/javascript'>
+        function initEmbeddedMessaging() {
+            try {
+                embeddedservice_bootstrap.settings.language = 'en_US';
+
+                embeddedservice_bootstrap.init(
+                    '00Dez000000552H',
+                    'PCC_Service_Agent_Channel',
+                    'https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648',
+                    {
+                        scrt2URL: 'https://force-connect-7550--pcextendev.sandbox.my.salesforce-scrt.com'
+                    }
+                );
+            } catch (err) {
+                console.error('Error loading Embedded Messaging: ', err);
+            }
+        }
+    </script>
+
+    <script type='text/javascript'
+        src='https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648/assets/js/bootstrap.min.js'
+        onload='initEmbeddedMessaging()'>
+    </script>
+</head>
+
+<body>
+
+    <!-- Your custom search bar -->
+    <div class="search-container">
+        <input id="searchInput" type="text" placeholder="Ask Agentforce anything…" />
+    </div>
+
+    <!-- Logic to open chat + send first message -->
+    <script>
+        document.getElementById("searchInput").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                const msg = e.target.value.trim();
+                if (!msg) return;
+
+                // Open chat
+                embeddedservice_bootstrap.utilAPI.openChat();
+
+                // Send message after widget loads
+                setTimeout(() => {
+                    embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
+                        initialMessage: msg
+                    });
+                    embeddedservice_bootstrap.prechatAPI.startChat();
+                }, 800);
+            }
+        });
+    </script>
+
+</body>
+</html>
