@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agentforce Inline Chat</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f7;
+    }
+
+    .search-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      background: #ffffff;
+      border-radius: 25px;
+      padding: 8px 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .search-bar button {
+      background: #0070d2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .chat-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 380px;
+      height: 520px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      overflow: hidden;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
+
+    .chat-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chat-header-title span.gradient {
+      background: linear-gradient(0deg, #022ac0 0%, #0250d9 99.5%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .chat-header button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .chat-body {
+      flex: 1;
+      position: relative;
+    }
+
+    #embedded-messaging {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="searchBar" class="search-bar">
+    <input id="userQuery" type="text" placeholder="How can Agentforce help?" />
+    <button id="searchButton">Ask</button>
+  </div>
+
+  <div id="chatContainer" class="chat-container hidden">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        How can <span class="gradient">Agentforce</span> help?
+      </div>
+      <button id="minimizeChat">×</button>
+    </div>
+    <div class="chat-body">
+      <div id="embedded-messaging"></div>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById("userQuery");
+    const searchButton = document.getElementById("searchButton");
+    const chatContainer = document.getElementById("chatContainer");
+    const minimizeBtn = document.getElementById("minimizeChat");
+
+    let chatLoaded = false;
+    let pendingMessage = null;
+
+    function openChatWithQuestion(question) {
+      if (!question) return;
+
+      chatContainer.classList.remove("hidden");
+
+      if (!chatLoaded) {
+        pendingMessage = question;
+        loadChatWidget();
+        chatLoaded = true;
+      } else {
+        sendMessageToChat(question);
+      }
+    }
+
+    searchInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        openChatWithQuestion(searchInput.value.trim());
+      }
+    });
+
+    searchButton.addEventListener("click", function() {
+      openChatWithQuestion(searchInput.value.trim());
+    });
+
+    minimizeBtn.addEventListener("click", function() {
+      chatContainer.classList.add("hidden");
+    });
+
+    function loadChatWidget() {
+      var script = document.createElement('script');
+      script.src = "https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648/assets/js/bootstrap.min.js";
+      script.onload = function() {
+        initEmbeddedMessaging();
+      };
+      document.body.appendChild(script);
+    }
+
+    function initEmbeddedMessaging() {
+      embeddedservice_bootstrap.settings.language = 'en_US';
+
+      embeddedservice_bootstrap.init(
+        '00Dez000000552H',
+        'PCC_Service_Agent_Channel',
+        'https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648',
+        {
+          scrt2URL: 'https://force-connect-7550--pcextendev.sandbox.my.salesforce-scrt.com'
+        }
+      );
+
+      window.addEventListener("onEmbeddedMessagingReady", function() {
+        if (pendingMessage) {
+          sendMessageToChat(pendingMessage);
+          pendingMessage = null;
+        }
+      });
+    }
+
+    function sendMessageToChat(text) {
+      if (embeddedservice_bootstrap?.utilAPI?.sendMessage) {
+        embeddedservice_bootstrap.utilAPI.sendMessage(text);
+      }
+    }
+  </script>
+
+</body>
+</html>
