@@ -1,102 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Agentforce Search</title>
+  <meta charset="UTF-8" />
+  <title>Agentforce Inline Chat</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f9fb;
-            margin: 0;
-            padding: 0;
-        }
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f7;
+      height: 200vh; /* just to allow scrolling while testing */
+    }
 
-        .search-container {
-            width: 100%;
-            max-width: 650px;
-            margin: 120px auto;
-            text-align: center;
-        }
+    /* Search bar launcher */
+    .search-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      background: #ffffff;
+      border-radius: 25px;
+      padding: 8px 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        #searchInput {
-            width: 100%;
-            padding: 18px;
-            font-size: 20px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      flex: 1;
+    }
 
-        /* Floating helper bubble */
-        .floating-chat-helper {
-            position: fixed;
-            bottom: 140px;
-            right: 30px;
-            background: #0070d2;
-            color: white;
-            padding: 14px 20px;
-            border-radius: 20px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            animation: floatUpDown 3s ease-in-out infinite;
-            z-index: 999999;
-        }
+    .search-bar button {
+      background: #0070d2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-        @keyframes floatUpDown {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0); }
-        }
-    </style>
+    /* Chat container (inline panel) */
+    .chat-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 380px;
+      height: 520px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      overflow: hidden;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
 
-    <!-- Your Salesforce Embedded Messaging Snippet -->
-    <script type='text/javascript'>
-        function initEmbeddedMessaging() {
-            try {
-                embeddedservice_bootstrap.settings.language = 'en_US';
+    .chat-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
 
-                embeddedservice_bootstrap.init(
-                    '00Dez000000552H',
-                    'PCC_Service_Agent_Channel',
-                    'https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648',
-                    {
-                        scrt2URL: 'https://force-connect-7550--pcextendev.sandbox.my.salesforce-scrt.com'
-                    }
-                );
-            } catch (err) {
-                console.error('Error loading Embedded Messaging: ', err);
-            }
-        }
-    </script>
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-    <script type='text/javascript'
-        src='https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648/assets/js/bootstrap.min.js'
-        onload='initEmbeddedMessaging()'>
-    </script>
+    .chat-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chat-header-title span.gradient {
+      background: linear-gradient(0deg, #022ac0 0%, #0250d9 99.5%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .chat-header button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .chat-body {
+      flex: 1;
+      position: relative;
+    }
+
+    /* Embedded Messaging iframe will fill this */
+    #embedded-messaging {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
-
 <body>
 
-    <div class="search-container">
-        <input id="searchInput" type="text" placeholder="Ask Agentforce anything…" />
-    </div>
+  <!-- Search bar launcher -->
+  <div id="searchBar" class="search-bar">
+    <input id="userQuery" type="text" placeholder="How can Agentforce help?" />
+    <button id="searchButton">Ask</button>
+  </div>
 
-    <!-- Floating helper bubble -->
-    <div class="floating-chat-helper" onclick="scrollToBottom()">
-        Chat Now
+  <!-- Inline chat container -->
+  <div id="chatContainer" class="chat-container hidden">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        How can <span class="gradient">Agentforce</span> help?
+      </div>
+      <button id="minimizeChat" title="Minimize">×</button>
     </div>
+    <div class="chat-body">
+      <!-- Salesforce widget mounts here -->
+      <div id="embedded-messaging"></div>
+    </div>
+  </div>
 
-    <script>
-        function scrollToBottom() {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-    </script>
+  <script>
+    const searchInput = document.getElementById("userQuery");
+    const searchButton = document.getElementById("searchButton");
+    const chatContainer = document.getElementById("chatContainer");
+    const minimizeBtn = document.getElementById("minimizeChat");
+
+    let chatLoaded = false;
+    let pendingMessage = null;
+
+    function openChatWithQuestion(question) {
+      if (!question) return;
+
+      // Show inline chat container
+      chatContainer.classList.remove("hidden");
+
+      // First time: load widget + send message when ready
+      if (!chatLoaded) {
+        pendingMessage = question;
+        loadChatWidget();
+        chatLoaded = true;
+      } else {
+        sendMessageToChat(question);
+      }
+    }
+
+    // Enter key in search bar
+    searchInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        const question = searchInput.value.trim();
+        openChatWithQuestion(question);
+      }
+    });
+
+    // Click on Ask button
+    searchButton.addEventListener("click", function() {
+      const question = searchInput.value.trim();
+      openChatWithQuestion(question);
+    });
+
+    // Minimize inline chat
+    minimizeBtn.addEventListener("click", function() {
+      chatContainer.classList.add("hidden");
+    });
+
+    function loadChatWidget() {
+      // Load bootstrap script dynamically
+      var script = document.createElement('script');
+      script.src = 'https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648/assets/js/bootstrap.min.js';
+      script.onload = function() {
+        initEmbeddedMessaging();
+      };
+      document.body.appendChild(script);
+    }
+
+    function initEmbeddedMessaging() {
+      try {
+        embeddedservice_bootstrap.settings.language = 'en_US';
+
+        embeddedservice_bootstrap.init(
+          '00Dez000000552H',
+          'PCC_Service_Agent_Channel',
+          'https://force-connect-7550--pcextendev.sandbox.my.site.com/ESWPCCServiceAgentChan1766436051648',
+          {
+            scrt2URL: 'https://force-connect-7550--pcextendev.sandbox.my.salesforce-scrt.com'
+          }
+        );
+
+        // Hide default floating button if it appears
+        window.addEventListener('onEmbeddedMessagingButtonCreated', function() {
+          const defaultBtn = document.getElementById('embeddedMessagingConversationButton');
+          if (defaultBtn) {
+            defaultBtn.style.display = 'none';
+          }
+        });
+
+        // When chat is ready, send the pending first message (if any)
+        window.addEventListener("onEmbeddedMessagingReady", function() {
+          if (pendingMessage) {
+            sendMessageToChat(pendingMessage);
+            pendingMessage = null;
+          }
+        });
+
+      } catch (err) {
+        console.error('Error loading Embedded Messaging: ', err);
+      }
+    }
+
+    function sendMessageToChat(text) {
+      if (window.embeddedservice_bootstrap &&
+          embeddedservice_bootstrap.utilAPI &&
+          typeof embeddedservice_bootstrap.utilAPI.sendMessage === "function") {
+        embeddedservice_bootstrap.utilAPI.sendMessage(text);
+      } else {
+        console.warn("Chat not ready to send message yet");
+      }
+    }
+  </script>
 
 </body>
 </html>
